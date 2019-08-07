@@ -34,7 +34,7 @@ class graphVolume(graphPanel.graphPanel):
         self.dataMax = int(self.dataMax * 1.05)
 
     # 父类获取当前绘制的值颜色
-    def onGetColor(self, index):
+    def onGetColor(self, index, id = 0):
         if self.primData is None : return (1.0, 1.0, 1.0, 0.5)
         if self.primData[index][2] > self.primData[index][1]:       # 收盘价大于开盘价
             return (1.0, 0.0, 0.0, 1.0)
@@ -44,7 +44,7 @@ class graphVolume(graphPanel.graphPanel):
             return (0.0, 0.5, 1.0, 1.0)
 
     # 父类获取当前选中的值 
-    def onGetValue(self, index):
+    def onGetValue(self, index, id = 0):
         if index < 0 or index >= self.dataLen : return
         return self.data[index]
 

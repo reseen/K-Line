@@ -15,26 +15,29 @@ from . import graphVol as gpVol
 from . import graphPrm as gpPrm
 from . import graphTmb as gpTmb
 
-
 import time
 
 class graph():
 
-    def __init__(self, list, readDataCall):
-        self.list = list
-        self.readDataCall = readDataCall
+    def __init__(self, dataList, normList, onGetData, onGetNorm):
+        self.dataList = dataList
+        self.normList = normList
+        self.onGetData = onGetData
+        self.onGetNorm = onGetNorm
         self.data = None
-
+        self.norm = None
         self.m_wcf = None
         self.m_wts = None
         self.m_gpFont = None
         self.m_gpTextFont = None
         self.m_gpFrame = None
-        self.dataList = []
-        self.dataLabel = []
-        self.kli = None
-        self.vol = None
-        self.prm = None
+        self.dataButton = []    # 数据按钮
+        self.dataLabel = []     # 数据标签
+        self.normButton = []    # 指标按钮
+        self.normLabel = []     # 指标标签
+        self.kli = None         # K线面板
+        self.vol = None         # 成交量面板
+        self.nrm = None         # 指标面板
         self.tmb = None
 
     # 窗口尺寸发生变化
@@ -53,18 +56,21 @@ class graph():
 
     # 窗口重绘
     def drawFunc(self):
-        get_now_milli_time = lambda: int(time.time() * 1000)
+        get_now_milli_time = lambda : int(time.time() * 1000)
         time_start = get_now_milli_time()
 
         glClear(GL_COLOR_BUFFER_BIT)
         self.m_gpFrame.update()
 
         self.m_gpFrame.set_region_A()    # 列表
-        for i in range(len(self.dataList)):
-            self.dataList[i].setSize(0, i * 26, 1, 25, self.m_gpFrame.get_region_A())
-            self.dataList[i].draw()
+        for i in range(len(self.dataButton)):
+            self.dataButton[i].setSize(0, i * 26, 1, 25, self.m_gpFrame.get_region_A())
+            self.dataButton[i].draw()
 
         self.m_gpFrame.set_region_B()    # 参数选择
+        for i in range(len(self.normButton)):
+            self.normButton[i].setSize(i * 60, 0.0, 59, 1.0, self.m_gpFrame.get_region_B())
+            self.normButton[i].draw()
 
         self.m_gpFrame.set_region_C()    # 时间轴
         self.tmb.setSize(self.m_gpFrame.get_region_C())
@@ -75,6 +81,7 @@ class graph():
         self.prm.draw()
 
         self.m_gpFrame.set_region_E()    # 扩展参数标签
+
         self.m_gpFrame.set_region_F()    # 成交量图像
         self.vol.setSize(self.m_gpFrame.get_region_F())
         self.vol.draw()
@@ -98,8 +105,11 @@ class graph():
 
     # 鼠标点击
     def mouseClick(self, key, state, x, y):
-        for item in self.dataList:
+        for item in self.dataButton:
             item.setMouseCheck(key, state)
+        for item in self.normButton:
+            item.setMouseCheck(key, state)
+
         self.tmb.setMouseClick(key, state)
         self.kli.setMouseClick(key, state)
         self.vol.setMouseClick(key, state)
@@ -126,9 +136,10 @@ class graph():
     # 鼠标抬起移动
     def mousePassive(self, x, y):
         drawFlag = 0
-        for item in self.dataList:
+        for item in self.dataButton:
             drawFlag |= item.setMousePassive(x, self.m_wcf.get_wsize_h() - y)
-        
+        for item in self.normButton:
+            drawFlag |= item.setMousePassive(x, self.m_wcf.get_wsize_h() - y)
         drawFlag |= self.tmb.setMousePassive(x, self.m_wcf.get_wsize_h() - y)
         drawFlag |= self.kli.setMousePassive(x, self.m_wcf.get_wsize_h() - y)
         drawFlag |= self.vol.setMousePassive(x, self.m_wcf.get_wsize_h() - y)
@@ -146,20 +157,28 @@ class graph():
         if key == b'\x1b' or key == b'q':        # Esc is 27
             sys.exit()
 
-    def buttonClick(self, id):
-        self.data = self.readDataCall(self.list[id][0])
+    def onDataButton(self, id):
+        self.data = self.onGetData(self.dataList[id][0])
         self.kli.setData(self.data)
         self.vol.setData(self.data)
         self.tmb.setData(self.data)
 
-        for i in range(len(self.dataList)):
-            self.dataList[i].setCheck(True if i == id else False)
+        for i in range(len(self.dataButton)):
+            self.dataButton[i].setCheck(True if i == id else False)
     
-        print("read data %s[%s] success!" % (self.list[id][1], self.list[id][0]))
+        print("read data %s[%s] success!" % (self.dataList[id][1], self.dataList[id][0]))
 
-    def ontmb(self, begin, end, length):
+    def onNormButton(self, id):
+        self.norm = self.onGetNorm(self.normList[id], self.data)
+        self.prm.setData(self.norm)
+
+        for i in range(len(self.normButton)):
+            self.normButton[i].setCheck(True if i == id else False)  
+
+    def onTmb(self, begin, end, length):
         self.kli.setIndex(begin, end, length)
         self.vol.setIndex(begin, end, length)
+        self.prm.setIndex(begin, end, length)
 
     def onKli(self, choice):
         if self.data is None : return
@@ -199,6 +218,9 @@ class graph():
 
         self.kli.setChoice(choice)
 
+    def onPrm(self, choice):
+        pass
+
     def show(self):
         self.m_wcf = winconf.winConfig()                            # 初始化配置文件类
         self.m_wts = wintool.winTools(self.m_wcf.get_appname())     # 初始化窗口工具类
@@ -233,9 +255,13 @@ class graph():
         colorBack = self.m_wcf.get_bcolor_button()
 
         # 添加列表按钮
-        for i in range(len(self.list)) :
-            self.dataList.append(gpButton.graphButton(i, self.list[i][1], self.m_gpFont, colorFont, colorBack, gpFont.Center, self.buttonClick))
-
+        for i in range(len(self.dataList)):
+            self.dataButton.append(gpButton.graphButton(i, self.dataList[i][1], self.m_gpFont, colorFont, colorBack, gpFont.Center, self.onDataButton))
+        
+        # 添加指标按钮
+        for i in range(len(self.normList)):
+            self.normButton.append(gpButton.graphButton(i, self.normList[i], self.m_gpFont, colorFont, colorBack, gpFont.Center, self.onNormButton))
+        
         # 添加加标签
         self.dataLabel.append(gpLabel.graphLabel(0, 'O', self.m_gpFont, colorFont))
         self.dataLabel.append(gpLabel.graphLabel(1, 'C', self.m_gpFont, colorFont))
@@ -247,8 +273,8 @@ class graph():
         # 添加K线面板
         self.kli = gpKli.graphKline(self.m_gpFont, self.onKli)
         self.vol = gpVol.graphVolume(self.m_gpFont, self.onVol)
-        self.prm = gpPrm.graphParam(self.m_gpFont)
-        self.tmb = gpTmb.graphTimebar(self.ontmb)
+        self.prm = gpPrm.graphParam(self.m_gpFont, self.onPrm)
+        self.tmb = gpTmb.graphTimebar(self.onTmb)
 
         glutMainLoop()
 

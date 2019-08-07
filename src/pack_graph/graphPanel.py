@@ -140,11 +140,11 @@ class graphPanel():
         return self.clicked
 
     @abstractmethod
-    def onGetColor(self, index):
+    def onGetColor(self, index, id = 0):
         return (1.0, 1.0, 1.0, 0.5)
 
     @abstractmethod
-    def onGetValue(self, index):
+    def onGetValue(self, index, id = 0):
         return 0.0
 
     @abstractmethod
@@ -211,11 +211,11 @@ class graphPanel():
                 font_y = self.font.prec((self._bottom + marginCol * i) - font_b)
             self.font.draw(font, font_x, font_y, font_pw, font_ph)
 
-    def drawChoice(self):
+    def drawChoice(self, id = 0):
         if self.choice < self.index.begin : return 
         if self.choice > self.index.end : return 
 
-        val = self.onGetValue(self.choice)
+        val = self.onGetValue(self.choice, id)
         x1 = self._uint * 5 * (self.choice - self.index.begin) + self._uint
         x2 = self._uint * 3 + x1
         x3 = (x2 - x1) / 2 + x1
@@ -336,14 +336,14 @@ class graphPanel():
         self.font.draw(font, font_x, font_y, font_pw, font_ph)
 
     # 绘制柱形图
-    def drawCurveCloumn(self, data):
+    def drawCurveCloumn(self, data, id = 0):
         if data is None : return
         for i in range(self._num):
             
-            glColor4fv(self.onGetColor(i + self.index.begin))
+            glColor4fv(self.onGetColor(i + self.index.begin, id))
             x1 = self._uint * 5 * i + self._uint
             x2 = self._uint * 3 + x1
-            y1 = 0.00
+            y1 = (0.0 - self.valMin) / (self.valMax - self.valMin) * (self._top - self._bottom)
             y2 = (data[i + self.index.begin] - self.valMin) / (self.valMax - self.valMin) * (self._top - self._bottom)
             
             if self._uintPx >= 5:                                                     # 大于5个像素则可以绘制K线

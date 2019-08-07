@@ -1,5 +1,6 @@
 from pack_storage import *
-from pack_graph import *
+from pack_graph   import *
+from pack_target  import *
 
 import requests
 import datetime
@@ -49,40 +50,46 @@ def updateData(force = False):
                 print('--->', data)
         print('update finish [%s - %s]' % (energy['code'], energy['name']))
 
-def readData_call(code):
+def onGetData(code):
     db = storage.database()
     db.connect()
-    # data = db.read_data(code, '2019-07-21')
-    data = db.read_data(code)
+    data = db.read_data(code, '2018-01-01')
+    # data = db.read_data(code)
     db.disconnect()
-    return  data
+    return data
+
+def onGetNorm(label, data):
+    nm = target.norm()
+    if label == target.MACD : return nm.getMACD(data)
     
+    return None
+
 if __name__ == "__main__":
     # updateData()
 
     db = storage.database()
 
     db.connect()
-    list = db.read_datalist()
+    dataList = db.read_datalist()
     db.disconnect()
-    # print(list)
 
+    # print(list)
     # datas = db.read_data('NG', '2019-01-01')
 
-    gp = graph.graph(list, readData_call)
+    nm = target.norm()
+    normList = (target.MACD, target.KDJ, target.RSI, target.BOLL, target.ENE)
+
+    gp = graph.graph(dataList, nm.getAllList(), onGetData, onGetNorm)
     gp.show()
 
-    for data in datas:
-        print(data)
+    # for data in datas:
+    #     print(data)
     
-
-
-
     # db.create_data('NG', '美国天然气')
  
     # for data in datas:
     #     db.insert_data('NG', data)
 
     # db.delete_data('NG')
-    db.disconnect()
+    # db.disconnect()
     print("OK")

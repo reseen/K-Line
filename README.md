@@ -9,7 +9,7 @@
 启动方式：
 
 ```
-D:\K-Line\src> cd src
+D:\K-Line> cd src
 D:\K-Line\src> python getEnergy.py
 ```
 
@@ -19,4 +19,4 @@ D:\K-Line\src> python getEnergy.py
 + pywin32
 + freetype
 
-数据源来自于新浪财经。
+数据来自于新浪财经。

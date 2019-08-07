@@ -10,6 +10,7 @@ class graphKline(graphPanel.graphPanel):
         super().setMargin(graphPanel.gridMargin(10, 70, 10, 25, 100, 50))
         super().setFormat('%.02f')
         self.data = None
+        self.dataLen = 0
         self.primData = None
         self.dataMin = 0
         self.dataMax = 100
@@ -68,7 +69,7 @@ class graphKline(graphPanel.graphPanel):
         self.dataMin = self.dataMin - dataRsv
 
     # 父类获取当前绘制的值颜色
-    def onGetColor(self, index):
+    def onGetColor(self, index, id = 0):
         if self.primData is None : return (1.0, 1.0, 1.0, 0.5)
         if self.primData[index][2] > self.primData[index][1]:       # 收盘价大于开盘价
             return (1.0, 0.0, 0.0, 1.0)
@@ -78,7 +79,7 @@ class graphKline(graphPanel.graphPanel):
             return (0.0, 0.5, 1.0, 1.0)
 
     # 父类获取当前选中的值 
-    def onGetValue(self, index):
+    def onGetValue(self, index, id = 0):
         if self.primData is None : return 0
         if index < 0 or index >= self.dataLen : return 0
         return self.data[index][1]
