@@ -1,0 +1,14 @@
+{
+    "AppName":          "K Line",
+    "AppIcon":          "D:/TrendAlarm/res/icon/Parameter.ico",
+    "CnFont":          "D:/TrendAlarm/res/font/simsun.ttc",
+    "EnFont":          "D:/TrendAlarm/res/font/msyh.ttc",
+    "AppFontVector":    false,
+    "Margin":           5,
+    "ListWidth":        150,
+    "Def-Width":        800,
+    "Def-Height":       600,
+    "Min-Width":        320,
+    "Min-Height":       240,
+    "Max-Size":         2000
+}
