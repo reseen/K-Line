@@ -1,7 +1,7 @@
 import sqlite3
 
 class database:
-    def __init__(self, path = 'D:/TrendAlarm/data/transaction.db'):
+    def __init__(self, path = 'D:/K-Line/data/transaction.db'):
         self.path = path
 
     # 连接数据库
