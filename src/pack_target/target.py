@@ -22,11 +22,11 @@ AXIS_FIXED   = 1                        # 固定坐标
 AXIS_CENTER  = 2                        # 居中坐标 
 
 class axis():
-    def __init__(self, xAxis = 0, xNum = 0, yAxis = 0, yNum = 0):
-        self.xAxis = xAxis              # X轴坐标类型
-        self.xNum = xNum                # X轴分割数量
-        self.yAxis = yAxis              # Y轴坐标类型
-        self.yNum = yNum                # Y轴分割数量
+    def __init__(self, type = 0, num = 0, fmt = '%.02f'):
+        self.type = type                # 轴坐标类型 仅针对Y轴
+        self.num = num                  # 轴分割数量
+        self.fmt = fmt                  # 坐标轴格式
+
 
 class param():
     def __init__(self, label = None, len = None, line = 0, color = None, axis = None):
@@ -54,15 +54,12 @@ class norm():
 
         dataDIF = param('DIF', dataLen, LINE_LINE, COLOR_WHITE)
         dataDEA = param('DEA', dataLen, LINE_LINE, COLOR_PURPLE)
-        dataBAR = param('BAR', dataLen, LINE_COLU, COLOR_AUTO, axis(AXIS_AUTO, 0, AXIS_CENTER, 0))  # 设该参数为主键
+        dataBAR = param('BAR', dataLen, LINE_COLU, COLOR_AUTO, axis(AXIS_CENTER, 1))  # 设该参数为主键
 
         EMA_12 = EMA_26 = DIF = DEA = BAR = 0
-        ka = 2  / 13 
-        kb = 11 / 13
-        kc = 2  / 27 
-        kd = 25 / 27
-        ke = 2  / 10 
-        kf = 8  / 10
+        ka, kb = 2 / 13, 11 / 13
+        kc, kd = 2 / 27, 25 / 27
+        ke, kf = 2 / 10,  8 / 10
 
         for i in range(dataLen):
             if i != 0:

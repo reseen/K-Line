@@ -81,6 +81,9 @@ class graph():
         self.prm.draw()
 
         self.m_gpFrame.set_region_E()    # 扩展参数标签
+        for i in range(len(self.normLabel)):
+            self.normLabel[i].setSize(i * 80 + 10, 0.1, 50, 0.9, self.m_gpFrame.get_region_E())
+            self.normLabel[i].draw()
 
         self.m_gpFrame.set_region_F()    # 成交量图像
         self.vol.setSize(self.m_gpFrame.get_region_F())
@@ -113,6 +116,7 @@ class graph():
         self.tmb.setMouseClick(key, state)
         self.kli.setMouseClick(key, state)
         self.vol.setMouseClick(key, state)
+        self.prm.setMouseClick(key, state)
 
         clicked = 0
         clicked += self.kli.getCliceked()
@@ -121,6 +125,7 @@ class graph():
         if clicked == 0:
             self.kli.setChoice(-1)
             self.vol.setChoice(-1)
+            self.prm.setChoice(-1)
 
         if state == 0 : self.drawFunc()
 
@@ -130,6 +135,7 @@ class graph():
         drawFlag |= self.tmb.setMouseMove(x, self.m_wcf.get_wsize_h() - y)
         drawFlag |= self.kli.setMouseMove(x, self.m_wcf.get_wsize_h() - y)
         drawFlag |= self.vol.setMouseMove(x, self.m_wcf.get_wsize_h() - y)
+        drawFlag |= self.prm.setMouseMove(x, self.m_wcf.get_wsize_h() - y)
         if drawFlag != 0 : self.drawFunc()
         # print("mouseMove x = %d, y = %d" % (x, y))
 
@@ -143,6 +149,7 @@ class graph():
         drawFlag |= self.tmb.setMousePassive(x, self.m_wcf.get_wsize_h() - y)
         drawFlag |= self.kli.setMousePassive(x, self.m_wcf.get_wsize_h() - y)
         drawFlag |= self.vol.setMousePassive(x, self.m_wcf.get_wsize_h() - y)
+        drawFlag |= self.prm.setMousePassive(x, self.m_wcf.get_wsize_h() - y)
 
         if drawFlag != 0 : self.drawFunc()
         # print("mousePassive x = %d, y = %d" % (x, y))
@@ -165,22 +172,29 @@ class graph():
 
         for i in range(len(self.dataButton)):
             self.dataButton[i].setCheck(True if i == id else False)
+
+        self.onNormButton(0)
     
         print("read data %s[%s] success!" % (self.dataList[id][1], self.dataList[id][0]))
 
     def onNormButton(self, id):
         self.norm = self.onGetNorm(self.normList[id], self.data)
         self.prm.setData(self.norm)
+        self.prm.setIndex(self.tmb.getPosLeft(), self.tmb.getPosRight(), self.tmb.getPosLength())
 
         for i in range(len(self.normButton)):
-            self.normButton[i].setCheck(True if i == id else False)  
+            self.normButton[i].setCheck(True if i == id else False)
+        
+        self.normLabel = []
+        for i in range(len(self.norm)):
+            self.normLabel.append(gpLabel.graphLabel(i, self.norm[i].label, self.m_gpFont, self.m_wcf.get_fcolor_button()))
 
     def onTmb(self, begin, end, length):
         self.kli.setIndex(begin, end, length)
         self.vol.setIndex(begin, end, length)
         self.prm.setIndex(begin, end, length)
 
-    def onKli(self, choice):
+    def setLabel(self, choice):
         if self.data is None : return
         if choice >= len(self.data) : return 
         if choice == 0:
@@ -197,28 +211,29 @@ class graph():
         self.dataLabel[4].setValue(perc, "%.02f%%")
         self.dataLabel[5].setValue(self.data[choice][5], '%d')
 
+        fmt = '%.02f'
+        for i in range(len(self.norm)):
+            if self.norm[i].axis is not None:
+                fmt = self.norm[i].axis.fmt
+
+        for i in range(len(self.norm)):
+            self.normLabel[i].setValue(self.norm[i].value[choice], fmt)
+
+    def onKli(self, choice):
+        self.setLabel(choice)
         self.vol.setChoice(choice)
+        self.prm.setChoice(choice)
 
     def onVol(self, choice):
-        if self.data is None : return
-        if choice >= len(self.data) : return 
-        if choice == 0:
-            if self.data[choice][1] == 0 :
-                perc = 100.00
-            else:
-                perc = (self.data[choice][2] - self.data[choice][1]) / self.data[choice][1] * 100.00
-        else:
-            perc = (self.data[choice][2] - self.data[choice - 1][2]) / self.data[choice - 1][2] * 100.00
-        self.dataLabel[0].setValue(self.data[choice][1], '%.02f')
-        self.dataLabel[1].setValue(self.data[choice][2], '%.02f')
-        self.dataLabel[2].setValue(self.data[choice][3], '%.02f')
-        self.dataLabel[3].setValue(self.data[choice][4], '%.02f')
-        self.dataLabel[4].setValue(perc, "%.02f%%")
-        self.dataLabel[5].setValue(self.data[choice][5], '%d')
-
+        self.setLabel(choice)
         self.kli.setChoice(choice)
+        self.prm.setChoice(choice)
+
 
     def onPrm(self, choice):
+        self.setLabel(choice)
+        self.kli.setChoice(choice)
+        self.prm.setChoice(choice)
         pass
 
     def show(self):

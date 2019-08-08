@@ -9,27 +9,28 @@ import datetime as dt
 
 # 定义网格尺寸类
 class gridMargin():
-    def __init__(self, left = 10, right = 10, top = 10, bottom = 10, width = 100, height = 40):
+    def __init__(self, left = 10, right = 70, top = 10, bottom = 10, width = 100, height = 40, fixed = False):
         self.left = left
         self.right = right
         self.top = top
         self.bottom = bottom
-        self.mixWidth = width
-        self.mixHeight = height
+        self.gridWidth = width          # 网格宽度 px
+        self.gridHeight = height        # 网格高度 px
+        self.fixed = fixed              # 网格是否固定  仅Y轴有效
 
 # 定义选择索引类
 class index():
     def __init__(self, begin = 0, end = 50, length = 50):
-        self.begin = begin          # 绘图起始索引
-        self.end = end              # 绘图结束索引
-        self.length = length        # 绘图长度长度
+        self.begin = begin              # 绘图起始索引
+        self.end = end                  # 绘图结束索引
+        self.length = length            # 绘图长度长度
 
 # 绘图板基类
 class graphPanel():
     __metaclass__ = ABCMeta
 
     def __init__(self, font, call = None):
-        self.margin = gridMargin()  # 定义网格
+        self.margin = gridMargin()      # 定义网格
         self.index = index()        # 定义索引
         self.call = call            # 选择回调
         self.font = font            # 显示字体
@@ -60,12 +61,15 @@ class graphPanel():
         self.colorWhite  = (255, 255, 255, 220)     # 文本亮色
 
     def setMargin(self, margin):                    # 设置面板边距
-        self.margin = margin        
+        self.margin = margin
 
     def setSize(self, frect):                       # 设置面板尺寸
         self.size = frect           
-        self.row = int((self.size.w - self.margin.left - self.margin.right) / self.margin.mixWidth)
-        self.col = int((self.size.h - self.margin.top - self.margin.bottom) / self.margin.mixHeight)
+        self.row = int((self.size.w - self.margin.left - self.margin.right) / self.margin.gridWidth)
+        if self.margin.fixed == True:
+            self.col = self.margin.gridHeight + 1
+        else:
+            self.col = int((self.size.h - self.margin.top - self.margin.bottom) / self.margin.gridHeight)
 
     def setFormat(self, format):
         self.format = format
@@ -202,7 +206,13 @@ class graphPanel():
             font_pw = font.shape[1]
             font_ph = font.shape[0]
             font_b = font_ph / self.size.h / 2.0
-            font_x = self.font.prec((self.size.w - self.margin.right + 10) / self.size.w)
+            
+            rect_x = (self.size.w - self.margin.right + 2) / self.size.w
+            rect_pw = self.margin.right - self.margin.left
+            rect_w = rect_pw / self.size.w
+            
+            font_x = self.font.prec(rect_x + rect_w - ((font_pw + 6) / self.size.w))  # 右对齐
+            # font_x = self.font.prec((self.size.w - self.margin.right + 6) / self.size.w)  # 左对齐
             if i == 0:
                 font_y = self.font.prec((self._bottom + marginCol * i))
             elif i == self.col:
@@ -271,8 +281,9 @@ class graphPanel():
         glVertex2f(rect_x, rect_y + rect_h)
         glVertex2f(rect_x, rect_y)
         glEnd()
-
-        font_x = (self.size.w - self.margin.right + 10) / self.size.w
+        
+        font_x = self.font.prec(rect_x + rect_w - (font_pw + 6) / self.size.w)  # 右对齐
+        # font_x = (self.size.w - self.margin.right + 6) / self.size.w          # 左对齐
         font_y = (rect_m - font_ph / self.size.h / 2.0)
         self.font.draw(font, font_x, font_y, font_pw, font_ph)
 
@@ -355,6 +366,19 @@ class graphPanel():
                 glVertex2f(self._left + x3, self._bottom + y1)
                 glVertex2f(self._left + x3, self._bottom + y2)
                 glEnd()
+
+    # 绘制折线图
+    def drawCurveLine(self, data, id = 0):
+        if data is None : return
+        glBegin(GL_LINE_STRIP)
+        for i in range(self._num):
+            glColor4fv(self.onGetColor(i + self.index.begin, id))
+            x1 = self._uint * 5 * i + self._uint
+            x2 = self._uint * 3 + x1
+            x = (x2 - x1) / 2 + x1
+            y = (data[i + self.index.begin] - self.valMin) / (self.valMax - self.valMin) * (self._top - self._bottom)
+            glVertex2f(self._left + x, self._bottom + y)
+        glEnd()
 
     # 绘制蜡烛图
     def drawCurveCandle(self, data):
