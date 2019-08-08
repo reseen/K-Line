@@ -45,7 +45,8 @@ class graphVolume(graphPanel.graphPanel):
 
     # 父类获取当前选中的值 
     def onGetValue(self, index, id = 0):
-        if index < 0 or index >= self.dataLen : return
+        if self.data is None : return 0
+        if index < 0 or index >= self.dataLen : return 0
         return self.data[index]
 
     # 绘图
@@ -53,5 +54,7 @@ class graphVolume(graphPanel.graphPanel):
         super().setRanges(self.dataMin, self.dataMax)
         super().drawInit()
         super().drawMargin()
+        
+        if self.data is None : return 
         super().drawCurveCloumn(self.data)
         super().drawChoice()

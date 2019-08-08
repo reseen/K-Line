@@ -82,7 +82,7 @@ class graph():
 
         self.m_gpFrame.set_region_E()    # 扩展参数标签
         for i in range(len(self.normLabel)):
-            self.normLabel[i].setSize(i * 80 + 10, 0.1, 50, 0.9, self.m_gpFrame.get_region_E())
+            self.normLabel[i].setSize(i * 80 + 10, 0.1, 60, 0.9, self.m_gpFrame.get_region_E())
             self.normLabel[i].draw()
 
         self.m_gpFrame.set_region_F()    # 成交量图像
@@ -99,11 +99,10 @@ class graph():
 
         self.m_gpFrame.set_region_I()    # K线数据标签
         for i in range(4):
-            self.dataLabel[i].setSize(i * 80 + 10, 0.1, 50, 0.9, self.m_gpFrame.get_region_I())
+            self.dataLabel[i].setSize(i * 80 + 10, 0.1, 60, 0.9, self.m_gpFrame.get_region_I())
             self.dataLabel[i].draw()
 
         glutSwapBuffers()
-
         print('draw time: %d' % int(get_now_milli_time() - time_start))
 
     # 鼠标点击
@@ -121,7 +120,7 @@ class graph():
         clicked = 0
         clicked += self.kli.getCliceked()
         clicked += self.vol.getCliceked()
-
+        clicked += self.prm.getCliceked()
         if clicked == 0:
             self.kli.setChoice(-1)
             self.vol.setChoice(-1)
@@ -168,19 +167,17 @@ class graph():
         self.data = self.onGetData(self.dataList[id][0])
         self.kli.setData(self.data)
         self.vol.setData(self.data)
+        self.onNormButton(0)
         self.tmb.setData(self.data)
 
         for i in range(len(self.dataButton)):
             self.dataButton[i].setCheck(True if i == id else False)
 
-        self.onNormButton(0)
-    
         print("read data %s[%s] success!" % (self.dataList[id][1], self.dataList[id][0]))
 
     def onNormButton(self, id):
         self.norm = self.onGetNorm(self.normList[id], self.data)
         self.prm.setData(self.norm)
-        self.prm.setIndex(self.tmb.getPosLeft(), self.tmb.getPosRight(), self.tmb.getPosLength())
 
         for i in range(len(self.normButton)):
             self.normButton[i].setCheck(True if i == id else False)
@@ -233,8 +230,7 @@ class graph():
     def onPrm(self, choice):
         self.setLabel(choice)
         self.kli.setChoice(choice)
-        self.prm.setChoice(choice)
-        pass
+        self.vol.setChoice(choice)
 
     def show(self):
         self.m_wcf = winconf.winConfig()                            # 初始化配置文件类

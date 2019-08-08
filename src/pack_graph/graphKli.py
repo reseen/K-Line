@@ -95,6 +95,7 @@ class graphKline(graphPanel.graphPanel):
         super().setRanges(self.dataMin, self.dataMax)
         super().drawInit()
         super().drawMargin()
+        if self.data is None : return 
         super().drawCurveCandle(self.data)
         super().drawChoice()
         super().drawScale(self.textBegin, self.textBeginTid, self.textEnd, self.textEndTid)

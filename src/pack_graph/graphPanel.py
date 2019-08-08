@@ -249,7 +249,7 @@ class graphPanel():
         glVertex2f(self._right, self._bottom + y2)
         glEnd()
         
-        color = winConfig.get_color_uint(self.onGetColor(self.choice))
+        color = winConfig.get_color_uint(self.onGetColor(self.choice, id))
         font = self.font.number(self.format % val, color)
         font_pw = font.shape[1]
         font_ph = font.shape[0]

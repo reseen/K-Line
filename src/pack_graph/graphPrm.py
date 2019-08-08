@@ -92,7 +92,9 @@ class graphParam(graphPanel.graphPanel):
         super().drawInit()
         super().drawMargin()
         if self.data is None : return 
-        super().drawCurveLine(self.data[0].value, 0)
-        super().drawCurveLine(self.data[1].value, 1)
-        super().drawCurveCloumn(self.data[2].value, 2)
-        super().drawChoice()
+        for i in range(len(self.data)):
+            if self.data[i].line == LINE_LINE:  
+                super().drawCurveLine(self.data[i].value, i)    # 绘制折线图
+            if self.data[i].line == LINE_COLU:  
+                super().drawCurveCloumn(self.data[i].value, i)  # 绘制柱形图
+        super().drawChoice(self.axisIndex)

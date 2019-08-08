@@ -3,8 +3,6 @@ import numpy as np
 MACD = 'MACD'
 KDJ  = 'KDJ'
 RSI  = 'RSI'
-BOLL = 'BOLL'
-ENE  = 'ENE'
 
 LINE_LINE   =   0       # 折线图
 LINE_COLU   =   1       # 柱形图
@@ -44,7 +42,7 @@ class param():
 
 class norm():
     def __init__(self):
-        self.normList = (MACD, KDJ, RSI, BOLL, ENE)
+        self.normList = (MACD, KDJ, RSI)
 
     def getAllList(self):          # 获取当前库所支持的指标公式列表
         return self.normList
@@ -74,3 +72,6 @@ class norm():
             dataBAR.value[i] = BAR
         
         return (dataDIF, dataDEA, dataBAR)
+
+    def getKDJ(self, data):
+        pass
