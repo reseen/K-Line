@@ -29,7 +29,7 @@ class index():
 class graphPanel():
     __metaclass__ = ABCMeta
 
-    def __init__(self, font, call = None):
+    def __init__(self, font, call = None, label = False):
         self.margin = gridMargin()      # 定义网格
         self.index = index()        # 定义索引
         self.call = call            # 选择回调
@@ -59,6 +59,18 @@ class graphPanel():
         self.colorGrid   = (1.0, 1.0, 1.0, 0.1)     # 网格颜色
         self.colorText   = (255, 255, 255, 120)     # 文本颜色
         self.colorWhite  = (255, 255, 255, 220)     # 文本亮色
+
+        self.fontLabel = []
+        self.fontLabelTid = []
+        if label is True:
+            self.font.setSpace(0)
+            self.fontLabel.append(self.font.string('OPEN：', self.colorText))
+            self.fontLabel.append(self.font.string('HIGH：', self.colorText))
+            self.fontLabel.append(self.font.string('LOW：', self.colorText))
+            self.fontLabel.append(self.font.string('CLOSE：', self.colorText))
+            self.fontLabel.append(self.font.string('PERC：', self.colorText))
+            for img in self.fontLabel:
+                self.fontLabelTid.append(self.font.getTexture(img))
 
     def setMargin(self, margin):                    # 设置面板边距
         self.margin = margin
@@ -152,6 +164,14 @@ class graphPanel():
         return 0.0
 
     @abstractmethod
+    def onGetList(self, index):
+        return None
+
+    @abstractmethod
+    def onGetListColor(index, id = 0, sel = 0):
+        return (1.0, 1.0, 1.0, 0.5)
+
+    @abstractmethod
     def onGetScale(self, index):
         return dt.datetime.now().strftime('%Y-%m-%d')
 
@@ -221,34 +241,7 @@ class graphPanel():
                 font_y = self.font.prec((self._bottom + marginCol * i) - font_b)
             self.font.draw(font, font_x, font_y, font_pw, font_ph)
 
-    def drawChoice(self, id = 0):
-        if self.choice < self.index.begin : return 
-        if self.choice > self.index.end : return 
-
-        val = self.onGetValue(self.choice, id)
-        x1 = self._uint * 5 * (self.choice - self.index.begin) + self._uint
-        x2 = self._uint * 3 + x1
-        x3 = (x2 - x1) / 2 + x1
-        y1 = 0.00
-        y2 = (val - self.valMin) / (self.valMax - self.valMin) * (self._top - self._bottom)
-
-        # # 绘制时间指示光标
-        glColor4f(1.0, 1.0, 1.0, 0.1)
-        if self._uintPx >= 5 :
-            glRectf(self._left + x1, self._top, self._left + x2, self._bottom)
-        else:
-            glBegin(GL_LINES)
-            glVertex2f(self._left + x3, self._top)
-            glVertex2f(self._left + x3, self._bottom)
-            glEnd()
-
-        # 绘制值指示光标
-        glColor4f(1.0, 1.0, 1.0, 0.2)
-        glBegin(GL_LINES)
-        glVertex2f(self._left + x3, self._bottom + y2)
-        glVertex2f(self._right, self._bottom + y2)
-        glEnd()
-        
+    def __drawChoiceValue(self, val, x1, x2, x3, y1, y2, id):
         color = winConfig.get_color_uint(self.onGetColor(self.choice, id))
         font = self.font.number(self.format % val, color)
         font_pw = font.shape[1]
@@ -270,7 +263,7 @@ class graphPanel():
 
         rect_m = rect_y + rect_h / 2.0
 
-        glColor4f(0.03, 0.03, 0.03, 0.9)
+        glColor4f(0.03, 0.03, 0.03, 0.7)
         glRectf(rect_x, rect_y, rect_x + rect_w, rect_y + rect_h)
 
         glColor4f(1.0, 1.0, 1.0, 0.2)
@@ -287,6 +280,95 @@ class graphPanel():
         font_y = (rect_m - font_ph / self.size.h / 2.0)
         self.font.draw(font, font_x, font_y, font_pw, font_ph)
 
+    def __drawChoiceList(self, list, x1, x2, x3, y1, y2, id):
+        if len(list) < 5 : return
+
+        rect_pw = self.margin.right - self.margin.left
+        rect_ph = self.fontLabel[0].shape[0] * 10 + 22
+        rect_w = rect_pw / self.size.w
+        rect_h = rect_ph / self.size.h
+
+        rect_x = (self.size.w - self.margin.right + 2) / self.size.w
+        rect_y = self._bottom + y2 - rect_h / 2.0
+
+        if rect_y < self._bottom:
+            rect_y = self._bottom
+
+        if rect_y > self._top - rect_h:
+            rect_y = self._top - rect_h
+
+        rect_m = rect_y + rect_h / 2.0
+
+        glColor4f(0.03, 0.03, 0.03, 0.7)
+        glRectf(rect_x, rect_y, rect_x + rect_w, rect_y + rect_h)
+
+        glColor4f(1.0, 1.0, 1.0, 0.2)
+        glBegin(GL_LINE_STRIP)
+        glVertex2f(rect_x, rect_y)
+        glVertex2f(rect_x + rect_w, rect_y)
+        glVertex2f(rect_x + rect_w, rect_y + rect_h)
+        glVertex2f(rect_x, rect_y + rect_h)
+        glVertex2f(rect_x, rect_y)
+        glEnd()
+
+        glColor4f(255, 255, 255, 220)
+        font_h = (self.fontLabel[0].shape[0] + 2) / self.size.h 
+        for i in range(len(list)):
+            font_x = (self.size.w - self.margin.right + 6) / self.size.w          # 左对齐
+            font_y = (rect_y + rect_h) - font_h - font_h * i * 2
+            font_pw = self.fontLabel[i].shape[1]
+            font_ph = self.fontLabel[i].shape[0]
+            # self.font.draw(self.fontLabel[i], font_x, font_y, font_pw, font_ph)
+            self.font.drawTexture(self.fontLabelTid[i], font_x, font_y, font_pw, font_ph, self.size)
+            
+            color = winConfig.get_color_uint(self.onGetListColor(self.choice, id, i))
+            if i == 4:
+                font = self.font.number('%.02f%%' % list[i], color)
+            else:
+                font = self.font.number(self.format % list[i], color)
+
+            font_pw = font.shape[1]
+            font_ph = font.shape[0]
+            font_x = self.font.prec(rect_x + rect_w - (font_pw + 6) / self.size.w)
+            font_y = (rect_y + rect_h) - font_h * 2 - font_h * i * 2
+            self.font.draw(font, font_x, font_y, font_pw, font_ph)
+
+    def drawChoice(self, id = 0):
+        if self.choice < self.index.begin : return 
+        if self.choice > self.index.end : return 
+
+        val = self.onGetValue(self.choice, id)
+        x1 = self._uint * 5 * (self.choice - self.index.begin) + self._uint
+        x2 = self._uint * 3 + x1
+        x3 = (x2 - x1) / 2 + x1
+        y1 = 0.00
+        y2 = (val - self.valMin) / (self.valMax - self.valMin) * (self._top - self._bottom)
+
+        # 绘制时间指示光标
+        glColor4f(1.0, 1.0, 1.0, 0.1)
+        if self._uintPx >= 5 :
+            glRectf(self._left + x1, self._top, self._left + x2, self._bottom)
+        else:
+            glBegin(GL_LINES)
+            glVertex2f(self._left + x3, self._top)
+            glVertex2f(self._left + x3, self._bottom)
+            glEnd()
+
+        # 绘制值指示光标
+        glColor4f(1.0, 1.0, 1.0, 0.2)
+        glBegin(GL_LINES)
+        glVertex2f(self._left + x3, self._bottom + y2)
+        glVertex2f(self._right, self._bottom + y2)
+        glEnd()
+        
+        # 绘制值指示面板
+        
+        list = self.onGetList(self.choice)
+        if list is None:
+            self.__drawChoiceValue(val, x1, x2, x3, y1, y2, id)
+        else:
+            self.__drawChoiceList(list, x1, x2, x3, y1, y2, id)
+        
     # 绘制时标
     def drawScale(self, textBegin, tidBegin, textEnd, tidEnd):
         glColor4fv(self.colorText)

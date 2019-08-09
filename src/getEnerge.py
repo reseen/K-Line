@@ -75,6 +75,7 @@ if __name__ == "__main__":
 
     # print(list)
     # datas = db.read_data('NG', '2019-01-01')
+    
 
     nm = target.norm()
     normList = (target.MACD, target.KDJ, target.RSI)
