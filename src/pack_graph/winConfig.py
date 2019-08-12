@@ -38,6 +38,9 @@ class winConfig(object):
     '''
     def get_color_rgba(self, color):
         return (float(color[0]) / 255.0, float(color[1]) / 255.0, float(color[2]) / 255.0, float(color[3]) / 255.0)
+
+    def get_color_gl(self, color):
+        return (float(color[0]) * 255.0, float(color[1]) * 255.0, float(color[2]) * 255.0, float(color[3]) * 255.0)
     
     def get_bcolor_base(self):
         return self.get_color_rgba(self._bcolor_base)

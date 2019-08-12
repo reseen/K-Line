@@ -9,9 +9,11 @@ class graphVolume(graphPanel.graphPanel):
         super().__init__(font, call)
         super().setMargin(graphPanel.gridMargin(10, 70))
         self.data = None
+        self.dataEx = None
         self.primData = None
         self.dataMin = 0
         self.dataMax = 100
+        self.idEx = 100
 
     # 设置成交量值
     def setData(self, data):
@@ -20,13 +22,18 @@ class graphVolume(graphPanel.graphPanel):
         self.data = np.zeros([self.dataLen], np.int32)
         for i in range(self.dataLen):
             self.data[i] = data[i][5]
+        self.dataEx = None
+    
+    # 设置成交量叠加数据 
+    def setDataEx(self, data):
+        self.dataEx = data
 
     # 设置选择索引
     def setIndex(self, begin, end, len):    
         super().setIndex(begin, end, len)
 
         if self.data is None : return
-        self.dataMax = 0
+        self.dataMax = -10000000.0
         for i in range(begin, end + 1):
             if self.dataMax < self.data[i]:
                 self.dataMax = self.data[i]
@@ -36,12 +43,11 @@ class graphVolume(graphPanel.graphPanel):
     # 父类获取当前绘制的值颜色
     def onGetColor(self, index, id = 0):
         if self.primData is None : return (1.0, 1.0, 1.0, 0.5)
-        if self.primData[index][2] > self.primData[index][1]:       # 收盘价大于开盘价
-            return (1.0, 0.0, 0.0, 1.0)
-        elif self.primData[index][2] < self.primData[index][1]:     # 收盘价大于开盘价
-            return (0.0, 1.0, 0.0, 1.0)
-        else:                                                       # 开盘价等于收盘价
-            return (0.0, 0.5, 1.0, 1.0)
+
+        if id < self.idEx:
+            return super().getAutoColor(self.primData[index][2], self.primData[index][1])
+        else:
+            return self.dataEx[id - self.idEx].color
 
     # 父类获取当前选中的值 
     def onGetValue(self, index, id = 0):
@@ -57,4 +63,12 @@ class graphVolume(graphPanel.graphPanel):
         
         if self.data is None : return 
         super().drawCurveCloumn(self.data)
+        
+        # 绘制扩展图像
+        if self.dataEx is not None:
+            for i in range(len(self.dataEx)):
+                if self.dataEx[i].line == graphPanel.LINE_LINE:  
+                    super().drawCurveLine(self.dataEx[i].value, i + self.idEx)    # 绘制折线图
+                if self.dataEx[i].line == graphPanel.LINE_COLU:  
+                    super().drawCurveCloumn(self.dataEx[i].value, i + self.idEx)  # 绘制柱形图
         super().drawChoice()

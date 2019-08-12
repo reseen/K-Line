@@ -7,6 +7,9 @@ from abc import ABCMeta, abstractmethod
 
 import datetime as dt
 
+LINE_LINE   = 0    # 折线图
+LINE_COLU   = 1    # 柱形图
+
 # 定义网格尺寸类
 class gridMargin():
     def __init__(self, left = 10, right = 70, top = 10, bottom = 10, width = 100, height = 40, fixed = False):
@@ -154,6 +157,12 @@ class graphPanel():
 
     def getCliceked(self):
         return self.clicked
+
+    # 获取数据颜色
+    def getAutoColor(self, a, b):
+        if a > b : return (1.0, 0.0, 0.0, 1.0)     # 红色
+        if a < b : return (0.0, 1.0, 0.0, 1.0)     # 绿色
+        else : return (0.0, 0.5, 1.0, 1.0)         # 蓝色
 
     @abstractmethod
     def onGetColor(self, index, id = 0):
@@ -311,7 +320,7 @@ class graphPanel():
         glVertex2f(rect_x, rect_y)
         glEnd()
 
-        glColor4f(255, 255, 255, 220)
+        glColor4f(1.0, 1.0, 1.0, 1.0)
         font_h = (self.fontLabel[0].shape[0] + 2) / self.size.h 
         for i in range(len(list)):
             font_x = (self.size.w - self.margin.right + 6) / self.size.w          # 左对齐
@@ -453,13 +462,16 @@ class graphPanel():
     def drawCurveLine(self, data, id = 0):
         if data is None : return
         glBegin(GL_LINE_STRIP)
+        start = False
         for i in range(self._num):
+            if data[i + self.index.begin] == 0 and start is False : continue
             glColor4fv(self.onGetColor(i + self.index.begin, id))
             x1 = self._uint * 5 * i + self._uint
             x2 = self._uint * 3 + x1
             x = (x2 - x1) / 2 + x1
             y = (data[i + self.index.begin] - self.valMin) / (self.valMax - self.valMin) * (self._top - self._bottom)
             glVertex2f(self._left + x, self._bottom + y)
+            start = True
         glEnd()
 
     # 绘制蜡烛图

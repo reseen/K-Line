@@ -19,11 +19,12 @@ import time
 
 class graph():
 
-    def __init__(self, dataList, normList, onGetData, onGetNorm):
+    def __init__(self, dataList, normList, onGetData, onGetNorm, onGetDataEx):
         self.dataList = dataList
         self.normList = normList
         self.onGetData = onGetData
         self.onGetNorm = onGetNorm
+        self.onGetDataEx = onGetDataEx
         self.data = None
         self.norm = None
         self.m_wcf = None
@@ -33,12 +34,13 @@ class graph():
         self.m_gpFrame = None
         self.dataButton = []    # 数据按钮
         self.dataLabel = []     # 数据标签
+        self.volLabel = []      # 成交量标签
         self.normButton = []    # 指标按钮
         self.normLabel = []     # 指标标签
         self.kli = None         # K线面板
         self.vol = None         # 成交量面板
         self.nrm = None         # 指标面板
-        self.tmb = None
+        self.tmb = None         # 时间轴面板
 
     # 窗口尺寸发生变化
     def ReshapeFunc(self, width, height):
@@ -82,7 +84,7 @@ class graph():
 
         self.m_gpFrame.set_region_E()    # 扩展参数标签
         for i in range(len(self.normLabel)):
-            self.normLabel[i].setSize(i * 80 + 10, 0.1, 60, 0.9, self.m_gpFrame.get_region_E())
+            self.normLabel[i].setSize(i * 100 + 10, 0.1, 70, 0.9, self.m_gpFrame.get_region_E())
             self.normLabel[i].draw()
 
         self.m_gpFrame.set_region_F()    # 成交量图像
@@ -90,16 +92,17 @@ class graph():
         self.vol.draw()
 
         self.m_gpFrame.set_region_G()    # 成交量标签
-        self.dataLabel[5].setSize(10, 0.1, 80, 0.9, self.m_gpFrame.get_region_G())
-        self.dataLabel[5].draw()
+        for i in range(len(self.volLabel)):
+            self.volLabel[i].setSize(i * 100 + 10, 0.1, 70, 0.9, self.m_gpFrame.get_region_G())
+            self.volLabel[i].draw()
 
         self.m_gpFrame.set_region_H()    # K线图形区域
         self.kli.setSize(self.m_gpFrame.get_region_H())
         self.kli.draw()
 
         self.m_gpFrame.set_region_I()    # K线数据标签
-        for i in range(4):
-            self.dataLabel[i].setSize(i * 80 + 10, 0.1, 60, 0.9, self.m_gpFrame.get_region_I())
+        for i in range(len(self.dataLabel)):
+            self.dataLabel[i].setSize(i * 100 + 10, 0.1, 70, 0.9, self.m_gpFrame.get_region_I())
             self.dataLabel[i].draw()
 
         glutSwapBuffers()
@@ -163,70 +166,80 @@ class graph():
         if key == b'\x1b' or key == b'q':        # Esc is 27
             sys.exit()
 
+    # 数据选择按钮回调
     def onDataButton(self, id):
         self.data = self.onGetData(self.dataList[id][0])
         self.kli.setData(self.data)
+        self.kli.setDataEx(self.onGetDataEx(0, self.data))
         self.vol.setData(self.data)
+        self.vol.setDataEx(self.onGetDataEx(1, self.data))
         self.onNormButton(0)
-        self.tmb.setData(self.data)
+        
+        self.dataLabel = []
+        for i in range(len(self.kli.dataEx)):
+            self.dataLabel.append(gpLabel.graphLabel(i, self.kli.dataEx[i].label, self.m_gpFont, winconf.get_color_uint(self.kli.dataEx[i].color)))
+
+        self.volLabel = []
+        self.volLabel.append(gpLabel.graphLabel(i, 'VOL', self.m_gpFont, (255, 255, 255, 220)))
+        for i in range(len(self.vol.dataEx)):
+            self.volLabel.append(gpLabel.graphLabel(i, self.vol.dataEx[i].label, self.m_gpFont, winconf.get_color_uint(self.vol.dataEx[i].color)))
 
         for i in range(len(self.dataButton)):
             self.dataButton[i].setCheck(True if i == id else False)
 
-        print("read data %s[%s] success!" % (self.dataList[id][1], self.dataList[id][0]))
-
+    # 参数选择按钮回调
     def onNormButton(self, id):
+        if self.data is None : return
         self.norm = self.onGetNorm(self.normList[id], self.data)
         self.prm.setData(self.norm)
 
-        for i in range(len(self.normButton)):
-            self.normButton[i].setCheck(True if i == id else False)
-        
-        self.normLabel = []
-        for i in range(len(self.norm)):
-            self.normLabel.append(gpLabel.graphLabel(i, self.norm[i].label, self.m_gpFont, self.m_wcf.get_fcolor_button()))
+        if self.norm is not None:
+            self.normLabel = []
+            for i in range(len(self.norm)):
+                if self.norm[i].color is None:
+                    self.normLabel.append(gpLabel.graphLabel(i, self.norm[i].label, self.m_gpFont, (255, 255, 255, 220)))
+                else:
+                    self.normLabel.append(gpLabel.graphLabel(i, self.norm[i].label, self.m_gpFont, winconf.get_color_uint(self.norm[i].color)))
+            for i in range(len(self.normButton)):
+                self.normButton[i].setCheck(True if i == id else False)
 
+        self.tmb.setData(self.data)     # 最后设置TimeBar 确定选中区域
+    
+        # 设置标签值
+    def setLabel(self, choice):
+        if self.data is None : return
+
+        for i in range(len(self.dataLabel)):
+            self.dataLabel[i].setValue(self.kli.dataEx[i].value[choice], self.kli.dataEx[i].fmt, winconf.get_color_uint(self.kli.onGetColor(choice, i + self.kli.idEx)))
+       
+        for i in range(len(self.volLabel)):
+            if i == 0:
+                self.volLabel[i].setValue(self.vol.data[choice], '%d', winconf.get_color_uint(self.vol.onGetColor(choice, i)))
+            else:
+                self.volLabel[i].setValue(self.vol.dataEx[i - 1].value[choice], self.vol.dataEx[i - 1].fmt, winconf.get_color_uint(self.vol.onGetColor(choice, i + self.vol.idEx - 1)))
+
+        for i in range(len(self.normLabel)):
+            self.normLabel[i].setValue(self.norm[i].value[choice], self.norm[i].fmt, winconf.get_color_uint(self.prm.onGetColor(choice, i)))
+    
+    # 时间轴选择回调
     def onTmb(self, begin, end, length):
         self.kli.setIndex(begin, end, length)
         self.vol.setIndex(begin, end, length)
         self.prm.setIndex(begin, end, length)
-
-    def setLabel(self, choice):
-        if self.data is None : return
-        if choice >= len(self.data) : return 
-        if choice == 0:
-            if self.data[choice][1] == 0 :
-                perc = 100.00
-            else:
-                perc = (self.data[choice][2] - self.data[choice][1]) / self.data[choice][1] * 100.00
-        else:
-            perc = (self.data[choice][2] - self.data[choice - 1][2]) / self.data[choice - 1][2] * 100.00
-        self.dataLabel[0].setValue(self.data[choice][1], '%.02f')
-        self.dataLabel[1].setValue(self.data[choice][2], '%.02f')
-        self.dataLabel[2].setValue(self.data[choice][3], '%.02f')
-        self.dataLabel[3].setValue(self.data[choice][4], '%.02f')
-        self.dataLabel[4].setValue(perc, "%.02f%%")
-        self.dataLabel[5].setValue(self.data[choice][5], '%d')
-
-        fmt = '%.02f'
-        for i in range(len(self.norm)):
-            if self.norm[i].axis is not None:
-                fmt = self.norm[i].axis.fmt
-
-        for i in range(len(self.norm)):
-            self.normLabel[i].setValue(self.norm[i].value[choice], fmt)
-
+    
+    # K线面板动作回调函数
     def onKli(self, choice):
         self.setLabel(choice)
         self.vol.setChoice(choice)
         self.prm.setChoice(choice)
 
+    # 成交量面板动作回调函数
     def onVol(self, choice):
         self.setLabel(choice)
         self.kli.setChoice(choice)
         self.prm.setChoice(choice)
 
-
+    # 参数面板动作回调函数
     def onPrm(self, choice):
         self.setLabel(choice)
         self.kli.setChoice(choice)
@@ -242,20 +255,17 @@ class graph():
         glutInitWindowSize(self.m_wcf.get_wsize_w(), self.m_wcf.get_wsize_h())
         glutCreateWindow(self.m_wcf.get_appname())
 
-        self.m_gpFrame = gpFrame.graphFrame(self.m_wcf)
-
-        glEnable(GL_BLEND)                           # 启用半透明
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-        glutReshapeFunc(self.ReshapeFunc)            # 窗口变化响应
-        glutDisplayFunc(self.drawFunc)               # 绘图控制
-        glutKeyboardFunc(self.keyboard)              # 键盘响应
-        glutMouseFunc(self.mouseClick)               # 鼠标响应
-        glutMotionFunc(self.mouseMove)               # 鼠标按下移动
-        glutPassiveMotionFunc(self.mousePassive)     # 鼠标松开移动
-        glutEntryFunc(self.mouseEntry)               # 鼠标离开窗口
-        gluOrtho2D(0, 1, 0, 1)                       # 设置坐标系
-        glClearColor(0.0, 0.0, 0.0, 1.0)             # 清除背景颜色
+        glEnable(GL_BLEND)                                          # 启用颜色混合
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)           # 启用半透明
+        glutReshapeFunc(self.ReshapeFunc)                           # 窗口变化响应
+        glutKeyboardFunc(self.keyboard)                             # 键盘响应
+        glutMouseFunc(self.mouseClick)                              # 鼠标响应
+        glutMotionFunc(self.mouseMove)                              # 鼠标按下移动
+        glutPassiveMotionFunc(self.mousePassive)                    # 鼠标松开移动
+        glutEntryFunc(self.mouseEntry)                              # 鼠标离开窗口
+        glutDisplayFunc(self.drawFunc)                              # 绘图控制
+        gluOrtho2D(0, 1, 0, 1)                                      # 设置坐标系
+        glClearColor(0.0, 0.0, 0.0, 1.0)                            # 清除背景颜色
 
         self.m_wts.set_icon(self.m_wcf.get('AppIcon'))
         self.m_gpFont = gpFont.graphFont(self.m_wcf.get('CnFont'), 12, self.m_wcf.get('AppFontVector'))
@@ -265,6 +275,9 @@ class graph():
         colorFont = self.m_wcf.get_fcolor_button()
         colorBack = self.m_wcf.get_bcolor_button()
 
+        # 创建主体框架
+        self.m_gpFrame = gpFrame.graphFrame(self.m_wcf)
+
         # 添加列表按钮
         for i in range(len(self.dataList)):
             self.dataButton.append(gpButton.graphButton(i, self.dataList[i][1], self.m_gpFont, colorFont, colorBack, gpFont.Center, self.onDataButton))
@@ -273,19 +286,10 @@ class graph():
         for i in range(len(self.normList)):
             self.normButton.append(gpButton.graphButton(i, self.normList[i], self.m_gpFont, colorFont, colorBack, gpFont.Center, self.onNormButton))
         
-        # 添加加标签
-        self.dataLabel.append(gpLabel.graphLabel(0, 'O', self.m_gpFont, colorFont))
-        self.dataLabel.append(gpLabel.graphLabel(1, 'C', self.m_gpFont, colorFont))
-        self.dataLabel.append(gpLabel.graphLabel(2, 'H', self.m_gpFont, colorFont))
-        self.dataLabel.append(gpLabel.graphLabel(3, 'L', self.m_gpFont, colorFont))
-        self.dataLabel.append(gpLabel.graphLabel(4, 'P', self.m_gpFont, colorFont))
-        self.dataLabel.append(gpLabel.graphLabel(5, 'VOL', self.m_gpFont, colorFont))
-
-        # 添加K线面板
-        self.kli = gpKli.graphKline(self.m_gpFont, self.onKli)
-        self.vol = gpVol.graphVolume(self.m_gpFont, self.onVol)
-        self.prm = gpPrm.graphParam(self.m_gpFont, self.onPrm)
-        self.tmb = gpTmb.graphTimebar(self.onTmb)
+        self.kli = gpKli.graphKline(self.m_gpFont, self.onKli)      # 添加K线面板
+        self.vol = gpVol.graphVolume(self.m_gpFont, self.onVol)     # 添加成交量面板
+        self.prm = gpPrm.graphParam(self.m_gpFont, self.onPrm)      # 创建参数面板
+        self.tmb = gpTmb.graphTimebar(self.onTmb)                   # 创建时间选择面板
 
         glutMainLoop()
 

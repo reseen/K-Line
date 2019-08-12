@@ -27,18 +27,19 @@ class axis():
 
 
 class param():
-    def __init__(self, label = None, len = None, line = 0, color = None, axis = None):
+    def __init__(self, label = None, len = None, line = 0, color = None, fmt = '%.02f', axis = None):
         self.label = label
         self.line  = line
         self.color = color
         self.value = None if len is None else np.zeros(len)
         self.axis = axis
+        self.fmt = fmt
 
     def __str__(self):
-        if self.label is None or self.data is None:
+        if self.label is None or self.value is None:
             return 'param is none'
         else:
-            return 'param label = %s data length = %d' % (self.label, len(self.data))
+            return 'param label = %s data length = %d' % (self.label, len(self.value))
 
 class norm():
     def __init__(self):
@@ -47,12 +48,42 @@ class norm():
     def getAllList(self):          # 获取当前库所支持的指标公式列表
         return self.normList
 
+    # 计算MA值
+    def getMA(self, data, cycle = 5, color = COLOR_WHITE):
+        dataLen = len(data)
+        dataMA = param('MA%d' % cycle, dataLen, LINE_LINE, color)
+
+        for i in range(dataLen):
+            st = i - cycle
+            if st < 0:
+                dataMA.value[i] = 0
+            else:
+                sum = 0
+                for j in range(st, i) : sum += data[j][2]
+                dataMA.value[i] = sum / (i - st)
+        return dataMA
+
+    # 计算成交量MA值
+    def getMAVOL(self, data, cycle = 5, color = COLOR_WHITE):
+        dataLen = len(data)
+        dataMAVOL = param('MV%d' % cycle, dataLen, LINE_LINE, color, '%d')
+
+        for i in range(dataLen):
+            st = i - cycle
+            if st < 0:
+                dataMAVOL.value[i] = 0
+            else:
+                sum = 0
+                for j in range(st, i) : sum += data[j][5]
+                dataMAVOL.value[i] = int(sum / (i - st))
+        return dataMAVOL
+
+    # 计算K线MACD
     def getMACD(self, data):
         dataLen = len(data)
-
-        dataDIF = param('DIF', dataLen, LINE_LINE, COLOR_WHITE)
+        dataDIF = param('DIF', dataLen, LINE_LINE, COLOR_BLUE)
         dataDEA = param('DEA', dataLen, LINE_LINE, COLOR_PURPLE)
-        dataBAR = param('BAR', dataLen, LINE_COLU, COLOR_AUTO, axis(AXIS_CENTER, 1))  # 设该参数为主键
+        dataBAR = param('BAR', dataLen, LINE_COLU, COLOR_AUTO, '%.02f', axis(AXIS_CENTER, 1))  # 设该参数为主键
 
         EMA_12 = EMA_26 = DIF = DEA = BAR = 0
         ka, kb = 2 / 13, 11 / 13
@@ -73,5 +104,38 @@ class norm():
         
         return (dataDIF, dataDEA, dataBAR)
 
+
+    def __RSV(self, index, data, n):
+        Cn = data[index][2]
+        Ln = data[index][4]
+        Hn = data[index][4]
+
+        start = index - n - 1
+        if index < 0 : index = 0
+        for i in (start, index):
+            if Hn < data[i][3] : Hn = data[i][3]
+            if Ln > data[i][4] : Ln = data[i][4]
+
+        if Hn == Ln : return 0
+        return (Cn - Ln) / (Hn - Ln) * 100
+    
+    # 计算K线KDJ
     def getKDJ(self, data):
-        pass
+        dataLen = len(data)
+        dataK = param('K', dataLen, LINE_LINE, COLOR_BLUE)
+        dataD = param('D', dataLen, LINE_LINE, COLOR_PURPLE)
+        dataJ = param('J', dataLen, LINE_LINE, COLOR_ORANGE, '%.02f', axis(AXIS_AUTO, 0))  # 设该参数为主键
+
+        lastK = 50
+        lastD = 50
+        for i in range(dataLen):
+            K = 2 / 3 * lastK + 1 / 3 * self.__RSV(i, data, 9)
+            D = 2 / 3 * lastD + 1 / 3 * K
+            J = 3 * K - 2 * D
+            dataK.value[i] = K
+            dataD.value[i] = D
+            dataJ.value[i] = J
+            lastK = K
+            lastD = D
+
+        return (dataK, dataD, dataJ)

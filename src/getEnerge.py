@@ -6,7 +6,6 @@ import requests
 import datetime
 import json
 
-
 # 获取配置文件
 def getConfig(path = '../data/list.json'):
     try:
@@ -50,18 +49,42 @@ def updateData(force = False):
                 print('--->', data)
         print('update finish [%s - %s]' % (energy['code'], energy['name']))
 
+# 读取数据
 def onGetData(code):
     db = storage.database()
     db.connect()
-    data = db.read_data(code, '2018-01-01')
-    # data = db.read_data(code)
+    # data = db.read_data(code, '2018-01-01')
+    data = db.read_data(code)
     db.disconnect()
+
+    for i in range(len(data)):              # 数据检查
+        if data[i][1] == 0 and i != 0:
+            lst = list(data[i])
+            lst[1] = data[i - 1][2]         # 如果开盘价丢失，则用昨天收盘价代替
+            tup = tuple(lst)
+            data[i] = tup
     return data
 
+# K线叠加图像
+def onGetDataEx(index, data):
+    if data is None : return None
+    nm = target.norm()
+    if index == 0:
+        MA5 = nm.getMA(data, 5, target.COLOR_BLUE)
+        MA30 = nm.getMA(data, 30, target.COLOR_PURPLE)
+        MA250 = nm.getMA(data, 250, target.COLOR_ORANGE)
+        return (MA5, MA30, MA250)
+    if index == 1:
+        MAVOL5 = nm.getMAVOL(data, 5, target.COLOR_BLUE)
+        MAVOL10 = nm.getMAVOL(data, 15, target.COLOR_PURPLE)
+        return (MAVOL5, MAVOL10)
+    
+# 参数图像
 def onGetNorm(label, data):
+    if data is None : return None
     nm = target.norm()
     if label == target.MACD : return nm.getMACD(data)
-    
+    if label == target.KDJ: return nm.getKDJ(data)
     return None
 
 if __name__ == "__main__":
@@ -78,9 +101,9 @@ if __name__ == "__main__":
     
 
     nm = target.norm()
-    normList = (target.MACD, target.KDJ, target.RSI)
+    normList = nm.getAllList()
 
-    gp = graph.graph(dataList, nm.getAllList(), onGetData, onGetNorm)
+    gp = graph.graph(dataList, normList, onGetData, onGetNorm, onGetDataEx)
     gp.show()
 
     # for data in datas:

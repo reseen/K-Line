@@ -7,9 +7,8 @@ class graphLabel():
     def __init__(self, id, key, font, color):
         self.id = id
         self.font = font
-        self.color = color
 
-        self.font.setSpace(1)
+        self.font.setSpace(0)
         self.key = font.string('%s：' % key, color)
         self.keyTid = font.getTexture(self.key)
         self.value = None
@@ -18,8 +17,9 @@ class graphLabel():
         self.frect = frect
         self.rect = graphSize.rectEx(x, y, width, height, frect)
 
-    def setValue(self, value, fmt):
-        self.value = self.font.number(fmt % value, self.color)
+    def setValue(self, value, fmt, color):
+        self.font.setSpace(0)
+        self.value = self.font.number(fmt % value, color)
 
     def draw(self):
         abs_x = self.frect.x + self.rect.x                                          # 计算绝对坐标值 X
@@ -27,8 +27,6 @@ class graphLabel():
 
         self.absrect = graphSize.rect(int(abs_x), int(abs_y), int(self.rect.w), int(self.rect.h))
         glViewport(self.absrect.x, self.absrect.y, self.absrect.w, self.absrect.h)  # 转换坐标 按钮内部坐标
-
-        glColor4fv(self.color)                                                      # 设置按钮背景色
 
         font_w = self.key.shape[1]                      # 文本宽度
         font_h = self.key.shape[0]                      # 文本高度
@@ -38,7 +36,8 @@ class graphLabel():
 
         font_px = 0.0
         font_py = self.font.prec((1 - font_ph) / 2)     # 文本绘制纵轴坐标  
-        
+
+        glColor4f(1.0, 1.0, 1.0, 1.0)
         self.font.drawTexture(self.keyTid, font_px, font_py, font_w, font_h, self.rect)
 
         if self.value is not None:

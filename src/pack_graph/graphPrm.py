@@ -24,9 +24,11 @@ class graphParam(graphPanel.graphPanel):
         self.axisIndex = 0
 
     def setData(self, data):
+        if data == None : return 
         self.data = data                    # 设置绘图数据
         self.dataNum = len(self.data)
         self.dataLen = len(self.data[0].value)
+        self.axis = None
     
     # 设置选择索引
     def setIndex(self, begin, end, len):    
@@ -48,12 +50,12 @@ class graphParam(graphPanel.graphPanel):
                     super().setMargin(graphPanel.gridMargin(height = self.axis.num, fixed = True))
                 super().setFormat(self.axis.fmt)
 
-        dataRsv = self.dataMax - self.dataMin * 0.05    # 图像上下各预留5%
+        dataRsv = (self.dataMax - self.dataMin) * 0.05    # 图像上下各预留5%
         self.dataMax = self.dataMax + dataRsv
         self.dataMin = self.dataMin - dataRsv
 
-        self.dataMax = int(self.dataMax * 10) / 10.00
-        self.dataMin = int(self.dataMin * 10) / 10.00
+        self.dataMax = int((self.dataMax + 0.1) * 10) / 10.00
+        self.dataMin = int((self.dataMin + 0.1) * 10) / 10.00
 
         if self.axis is not None:
             if self.axis.type == AXIS_SYMMET:
