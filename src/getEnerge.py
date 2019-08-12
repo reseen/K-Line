@@ -63,6 +63,7 @@ def onGetData(code):
             lst[1] = data[i - 1][2]         # 如果开盘价丢失，则用昨天收盘价代替
             tup = tuple(lst)
             data[i] = tup
+    print("read %s success, data length = %d" % (code, len(data)))
     return data
 
 # K线叠加图像

@@ -440,9 +440,12 @@ class graphPanel():
     # 绘制柱形图
     def drawCurveCloumn(self, data, id = 0):
         if data is None : return
+        color = colorLast = None
         for i in range(self._num):
-            
-            glColor4fv(self.onGetColor(i + self.index.begin, id))
+            color = self.onGetColor(i + self.index.begin, id)
+            if colorLast != color:
+                colorLast = color
+                glColor4fv(color)
             x1 = self._uint * 5 * i + self._uint
             x2 = self._uint * 3 + x1
             y1 = (0.0 - self.valMin) / (self.valMax - self.valMin) * (self._top - self._bottom)
@@ -463,9 +466,16 @@ class graphPanel():
         if data is None : return
         glBegin(GL_LINE_STRIP)
         start = False
+        # color = colorLast = None
+        glColor4fv(self.onGetColor(0, id))  # 折线图不需要变颜色
         for i in range(self._num):
             if data[i + self.index.begin] == 0 and start is False : continue
-            glColor4fv(self.onGetColor(i + self.index.begin, id))
+
+            # color = self.onGetColor(i + self.index.begin, id)
+            # if colorLast != color:
+            #     colorLast = color
+            #     glColor4fv(color)
+    
             x1 = self._uint * 5 * i + self._uint
             x2 = self._uint * 3 + x1
             x = (x2 - x1) / 2 + x1
@@ -477,9 +487,12 @@ class graphPanel():
     # 绘制蜡烛图
     def drawCurveCandle(self, data):
         if data is None : return
+        color = colorLast = None
         for i in range(self._num):
-
-            glColor4fv(self.onGetColor(i + self.index.begin))
+            color = self.onGetColor(i + self.index.begin)
+            if colorLast != color:
+                colorLast = color
+                glColor4fv(color)
 
             x1 = self._uint * 5 * i + self._uint
             x2 = self._uint * 3 + x1
