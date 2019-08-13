@@ -5,12 +5,12 @@ from email.utils import formataddr
 # 第三方 SMTP 服务
 mail_host = "smtp.exmail.qq.com"              # 设置服务器
 mail_user = "trendalarm@mallocx.com"          # 用户名
-mail_pass = "Yanyang.1990"                    # 口令 
+mail_pass = "123123"                          # 口令 
  
-receivenm = '艳阳'                               # 接收邮件名称
-receivers = 'yanyang@mallocx.com'                # 接收邮件地址
+receivenm = 'reseen'                           # 接收邮件名称
+receivers = 'yanyang@mallocx.com'              # 接收邮件地址
 
-mail_subject = 'Python SMTP 邮件测试'            # 邮件标题
+mail_subject = 'Python SMTP 邮件测试'           # 邮件标题
 mail_message = 'Python 邮件发送测试...'          # 邮件正文
 
 # 邮件打包

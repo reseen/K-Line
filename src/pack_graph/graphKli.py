@@ -38,7 +38,6 @@ class graphKline(graphPanel.graphPanel):
     # 设置K线叠加数据 
     def setDataEx(self, data):
         self.dataEx = data
-        print("set data ex 123")
 
     # 设置选择索引
     def setIndex(self, begin, end, length):    
