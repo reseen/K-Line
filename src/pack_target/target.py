@@ -139,3 +139,25 @@ class norm():
             lastD = D
 
         return (dataK, dataD, dataJ)
+
+    def __RSI(self, index, data, n):
+        if index <= n : return 0
+        A = B = D = 0
+        for i in range(index - n, index):
+            D = data[i][2] - data[i - 1][2]
+            if D > 0 : A += D
+            if D < 0 : B += abs(D)
+        return A / (A + B) * 100
+
+    #计算RSI  
+    def getRSI(self, data):
+        dataLen = len(data)
+        dataR6  = param('R6', dataLen, LINE_LINE, COLOR_BLUE, '%.02f', axis(AXIS_AUTO, 0))  # 设该参数为主键
+        dataR12 = param('R12', dataLen, LINE_LINE, COLOR_PURPLE)
+        dataR24 = param('R24', dataLen, LINE_LINE, COLOR_ORANGE) 
+
+        for i in range(dataLen):
+            dataR6.value[i]  = self.__RSI(i, data, 6)
+            dataR12.value[i] = self.__RSI(i, data, 12)
+            dataR24.value[i] = self.__RSI(i, data, 24)
+        return (dataR6, dataR12, dataR24)

@@ -81,7 +81,7 @@ class graphParam(graphPanel.graphPanel):
     def onGetValue(self, index, id = 0):
         if self.data is None : return 0
         if index < 0 or index >= self.dataLen : return 0
-        return self.data[2].value[index]
+        return self.data[id].value[index]
 
     # 父类获取当前选中值的标记
     def onGetScale(self, index):

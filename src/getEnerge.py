@@ -86,6 +86,7 @@ def onGetNorm(label, data):
     nm = target.norm()
     if label == target.MACD : return nm.getMACD(data)
     if label == target.KDJ: return nm.getKDJ(data)
+    if label == target.RSI: return nm.getRSI(data)
     return None
 
 if __name__ == "__main__":

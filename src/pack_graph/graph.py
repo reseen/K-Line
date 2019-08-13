@@ -58,8 +58,8 @@ class graph():
 
     # 窗口重绘
     def drawFunc(self):
-        get_now_milli_time = lambda : int(time.time() * 1000)
-        time_start = get_now_milli_time()
+        # get_now_milli_time = lambda : int(time.time() * 1000)
+        # time_start = get_now_milli_time()
 
         glClear(GL_COLOR_BUFFER_BIT)
         self.m_gpFrame.update()
@@ -106,7 +106,7 @@ class graph():
             self.dataLabel[i].draw()
 
         glutSwapBuffers()
-        print('draw time: %d' % int(get_now_milli_time() - time_start))
+        # print('draw time: %d' % int(get_now_milli_time() - time_start))
 
     # 鼠标点击
     def mouseClick(self, key, state, x, y):
