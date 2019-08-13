@@ -10,7 +10,7 @@
 
 ```
 D:\K-Line> cd src
-D:\K-Line\src> python getEnergy.py
+D:\K-Line\src> python energy.py
 ```
 
 需要安装的库：
