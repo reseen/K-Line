@@ -25,7 +25,6 @@ class axis():
         self.num = num                  # 轴分割数量
         self.fmt = fmt                  # 坐标轴格式
 
-
 class param():
     def __init__(self, label = None, len = None, line = 0, color = None, fmt = '%.02f', axis = None):
         self.label = label

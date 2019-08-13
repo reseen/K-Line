@@ -87,4 +87,3 @@ class storageEnergy(storageBase.database):
     def readData(self, code, start = None):
         return self.__read_datatable(code, start)
     
-        
