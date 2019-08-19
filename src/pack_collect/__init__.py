@@ -1,4 +1,4 @@
 import sys
 sys.path.append("..")
 
-__all__ = ["collectEnergy"]
+__all__ = ["collectEnergy", "collectStockA"]

@@ -11,5 +11,14 @@
 		"name": "纽约原油连续",
 		"code": "SC0",
 		"url" : "https://stock2.finance.sina.com.cn/futures/api/jsonp.php/var%20_SC0{YYYY_MM_DD}=/InnerFuturesNewService.getDailyKLine?symbol=SC0"
+	}],
+
+	"stockA":{
+		"all":  true,
+		"list":[
+			"000001",
+			"000002",
+			"000003"
+		]
 	}
-]}
+}

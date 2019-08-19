@@ -58,7 +58,7 @@ class storageEnergy(storageBase.database):
         super().execute(SQL)
         return super().fetchall()
 
-    # public 能源数据库管理接口----------------------------------------------
+    # public 能源期货数据库管理接口----------------------------------------------
 
     # 创建数据表
     def create(self, code, name, force = False):
@@ -70,7 +70,7 @@ class storageEnergy(storageBase.database):
         
         self.__insert_contents(code, name, force)       # 添加目录
 
-    # 删除数据表 股票代码
+    # 删除数据表 期货代码
     def delete(self, code):
         self.__delete_contents(code)                    # 删除目录
         self.__delete_datatable(code)                   # 删除表

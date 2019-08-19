@@ -43,8 +43,8 @@ def onGetNorm(label, data):
     return None
 
 if __name__ == "__main__":
-    # collect = collectEnergy.collectEnergy()
-    # collect.update()
+    collect = collectEnergy.collectEnergy()
+    collect.update()
 
     db = storageEnergy.storageEnergy()
     nm = target.norm()

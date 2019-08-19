@@ -1,2 +1,2 @@
 
-__all__ = ['storage', 'storageBase', 'storageEnergy']
+__all__ = ['storage', 'storageBase', 'storageEnergy', 'storageStockA']
