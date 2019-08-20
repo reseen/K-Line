@@ -1,5 +1,7 @@
 from . import storageBase
 
+DEFAULT_STARTTIME   =   '20000101'      # 默认起始时间
+
 class storageStockA(storageBase.database):
 
     def __init__(self, path = 'D:/K-Line/data/stockA.db'):
@@ -24,7 +26,7 @@ class storageStockA(storageBase.database):
             # print('SQL -> ', SQL)
             super().execute(SQL)
             super().commit()
-            print("insert success [%d] %s %s" % (i, data.ts_code[i], data.name[i]))
+            # print("insert success [%d] %s %s" % (i, data.ts_code[i], data.name[i]))
 
     # 删除目录
     def __delete_contents(self, code):                  
@@ -71,11 +73,19 @@ class storageStockA(storageBase.database):
 
     # 读取数据表
     def __read_datatable(self, code, start):
+        code = self.__fmt_code(code) 
         if start == None:
-            SQL = 'select * from %s' % code
+            SQL = 'select * from %s order by date asc' % code
         else:
-            SQL = 'select * from %s where date >= date(\'%s\')' % (code, start) 
+            SQL = 'select * from %s where date >= date(\'%s\') order by date asc' % (code, start) 
         # print('SQL -> ', SQL)
+        super().execute(SQL)
+        return super().fetchall()
+
+    # 读取最后一天数据
+    def __read_datalast(self, code):
+        code = self.__fmt_code(code) 
+        SQL = "select * from %s order by date desc limit 1" % code
         super().execute(SQL)
         return super().fetchall()
 
@@ -85,9 +95,19 @@ class storageStockA(storageBase.database):
             self.__create_contents()
         self.__insert_contents(data, force)
 
-    # 读取数据库列表
-    def readContents(self):
-        return self.__read_contens()
+    # 最后一次更新时间
+    def getLastTime(self, code):
+        if super().existTable(self.__fmt_code(code)) == False:
+            return DEFAULT_STARTTIME
+
+        data = self.__read_datalast(code)
+        if len(data) == 0:
+            return DEFAULT_STARTTIME
+            
+        return data[0][0].replace('-', '')
+
+    def getDefaultTime(self):
+        return DEFAULT_STARTTIME
 
     # 更新数据表
     def update(self, code, data, force = False):
@@ -95,4 +115,12 @@ class storageStockA(storageBase.database):
             self.__create_datatable(code)
 
         for i in range(len(data.ts_code)):
-            self.__insert_datatable(code, data.trade_date[i], data.open[i], data.close[i], data.high[i], data.low[i], data.vol[i], 'null', True)
+            self.__insert_datatable(code, data.trade_date[i], data.open[i], data.close[i], data.high[i], data.low[i], data.vol[i], 'null', force)
+
+    # 读取数据库目录
+    def readContents(self):
+        return self.__read_contens()
+
+    # 读取数据
+    def readData(self, code, start = None):
+        return self.__read_datatable(code, start)

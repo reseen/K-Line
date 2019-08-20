@@ -4,6 +4,7 @@
 *.ttc
 !simsun.ttc
 user.json
+stockA.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

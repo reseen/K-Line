@@ -4,10 +4,7 @@ import tushare as ts
 import datetime
 import time
 
-
-pro = ts.pro_api('4e5e2d7fbf14185d371c9a5e78d178882d2b91436a0de40599a29ece')
-
-
+TUSHARE_TOKEN = '4e5e2d7fbf14185d371c9a5e78d178882d2b91436a0de40599a29ece'
 
 class collectStockA():
     def __init__(self, path = 'D:/K-Line/data/list.json'):
@@ -18,25 +15,35 @@ class collectStockA():
         return datetime.datetime.now().strftime(fmt)
 
     # 更新数据
-    def update(self, force = False):
-        self.updateContents(force)
-
-    # 更新目录
-    def updateContents(self, force = False):
+    def update(self, force = False, code = None):
+        ts.set_token(TUSHARE_TOKEN)
+        pro = ts.pro_api()
         db = stStockA()
 
-        ts.set_token('4e5e2d7fbf14185d371c9a5e78d178882d2b91436a0de40599a29ece')
+        # 更新股票目录
+        data = pro.stock_basic(exchange = '', list_status = '', fields = 'ts_code, symbol, name, area, industry, fullname, enname, market, exchange, curr_type, list_status, list_date, delist_date')
+        db.updateContents(data, True)       # 强制更新 股票状态可能会变
+        print("Contents update success")
 
-        # 获取所有股票名称
-        # data = pro.stock_basic(exchange = '', list_status = '', fields = 'ts_code, symbol, name, area, industry, fullname, enname, market, exchange, curr_type, list_status, list_date, delist_date')
-        # db.updateContents(data, force)
+        # 强制更新单条数据
+        if code is not None:
+            start = db.getDefaultTime()
+            data = ts.pro_bar(ts_code = code, adj = 'qfq', start_date = start, end_date = self.__getDateNow('%Y%m%d'))
+            db.update(code, data, force)
+            print("Update success %s  -Time from %s to now  -Number = %-5d" % (code, start, len(data.trade_date)))
+            return
 
+        # 根据目录依次更新数据
         list = db.readContents()
         for i in range(len(list)):
-            data = ts.pro_bar(ts_code = list[i][0], adj = 'qfq', start_date = '20000101', end_date = self.__getDateNow('%Y%m%d'))
+            start = db.getLastTime(list[i][0])
+            data = ts.pro_bar(ts_code = list[i][0], adj = 'qfq', start_date = start, end_date = self.__getDateNow('%Y%m%d'))
             db.update(list[i][0], data, force)
-            print("update success %s %s" % (list[i][0], list[i][2]))
-            time.sleep(0.3)
+            # Tushare限制 每分钟请求200次
+            time.sleep(0.3) 
+            print("% 4d/%d Update success %s  -Time from %s to now  -Number = %-5d  -Name = %s" % (i, len(list), list[i][0], start, len(data.trade_date), list[i][2]))
+       
+        
 
 
 
