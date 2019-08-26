@@ -39,8 +39,11 @@ class storageStockA(storageBase.database):
         super().execute('drop table contents')
 
     # 读取目录
-    def __read_contens(self):                           
-        super().execute('select * from contents')
+    def __read_contens(self, code = None):     
+        if code is None:           
+            super().execute('select * from contents order by code asc')
+        else:
+            super().execute('select * from contents where code = \'%s\' or symbol = \'%s\'' % (code, code))
         return super().fetchall()
 
     # 数据管理-------------------------------------------------------------
@@ -118,8 +121,8 @@ class storageStockA(storageBase.database):
             self.__insert_datatable(code, data.trade_date[i], data.open[i], data.close[i], data.high[i], data.low[i], data.vol[i], 'null', force)
 
     # 读取数据库目录
-    def readContents(self):
-        return self.__read_contens()
+    def readContents(self, code = None):
+        return self.__read_contens(code)
 
     # 读取数据
     def readData(self, code, start = None):

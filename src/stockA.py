@@ -37,7 +37,7 @@ def onGetDataEx(index, data):
 def onGetNorm(label, data):
     if data is None : return None
     nm = target.norm()
-    if label == target.MACD : return nm.getMACD(data)
+    if label == target.MACD: return nm.getMACD(data)
     if label == target.KDJ: return nm.getKDJ(data)
     if label == target.RSI: return nm.getRSI(data)
     return None
@@ -46,17 +46,24 @@ if __name__ == "__main__":
 
     config = conf.config()
     collect = collectStockA.collectStockA(config.public(), config.private(), conf.PATH_DB_STOCKA)
-    collect.update()
 
-    db = storageStockA.storageStockA()
+    db = storageStockA.storageStockA(conf.PATH_DB_STOCKA)
     nm = target.norm()
+    
+    updateList = []
+    for item in collect.public['stockA']['list']:
+        updateList.append(db.readContents(item)[0])
 
-    contents = db.readContents()
-    normList = nm.getAllList()
+    if collect.public['stockA']['all'] is True:
+        collect.update()
+    else:
+        collect.update(updateList)
 
     dataList = []
-    for i in range(20):
-        dataList.append((contents[i][0], contents[i][2]))
+    normList = nm.getAllList()
+
+    for item in updateList:
+        dataList.append((item[0], item[2]))
 
     gp = graph.graph(dataList, normList, onGetData, onGetNorm, onGetDataEx)
     gp.show()

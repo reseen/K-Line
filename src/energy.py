@@ -43,11 +43,11 @@ def onGetNorm(label, data):
     return None
 
 if __name__ == "__main__":
-    config = conf.config()
-    collect = collectEnergy.collectEnergy(config.public(), config.private(), conf.PATH_DB_ENERGY)
-    collect.update()
+    # config = conf.config()
+    # collect = collectEnergy.collectEnergy(config.public(), config.private(), conf.PATH_DB_ENERGY)
+    # collect.update()
 
-    db = storageEnergy.storageEnergy()
+    db = storageEnergy.storageEnergy(conf.PATH_DB_ENERGY)
     nm = target.norm()
 
     dataList = db.readList()
