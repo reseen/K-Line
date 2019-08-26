@@ -7,17 +7,10 @@ import datetime
 import json
 
 class collectEnergy():
-    def __init__(self, path = 'D:/K-Line/data/list.json'):
+    def __init__(self, pubcfg, prvcfg, path):
         self.path = path
-
-    # 获取配置文件
-    def __getConfig(self, path):
-        try:
-            with open(path, 'r', encoding = 'UTF-8') as f:    # 打开文件
-                sconfig = f.read()                            # 读取文件
-                return json.loads(sconfig)
-        except:
-            print('配置文件"list.json"不存在，请检查。')
+        self.public = pubcfg
+        self.private = prvcfg
 
     # 获取当前日期
     def __getDateNow(self, fmt = '%Y_%m_%d'):
@@ -37,11 +30,10 @@ class collectEnergy():
 
     # 更新数据
     def update(self, force = False):
-        config = self.__getConfig(self.path)
-        for energy in config['energy']:
+        for energy in self.public['energy']:
             dateURL = self.__getDataURL(date = self.__getDateNow(), url = energy['url'])
             datas = self.__getData(dateURL)
-            db = stEnergy()
+            db = stEnergy(self.path)
             db.create(energy['code'], energy['name'], force)
             for data in datas:
                 if 'date' in data:

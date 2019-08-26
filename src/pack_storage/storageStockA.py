@@ -4,7 +4,7 @@ DEFAULT_STARTTIME   =   '20000101'      # 默认起始时间
 
 class storageStockA(storageBase.database):
 
-    def __init__(self, path = 'D:/K-Line/data/stockA.db'):
+    def __init__(self, path):
         super().__init__(path)
 
     # 目录管理-------------------------------------------------------------

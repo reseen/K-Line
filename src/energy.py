@@ -2,11 +2,11 @@ from pack_graph   import *
 from pack_target  import *
 from pack_collect import *
 from pack_storage import *
-
+import config as conf
 
 # 读取数据
 def onGetData(code):
-    db = storageEnergy.storageEnergy()
+    db = storageEnergy.storageEnergy(conf.PATH_DB_ENERGY)
     # data = db.readData(code, '2018-01-01')
     data = db.readData(code)
 
@@ -43,7 +43,8 @@ def onGetNorm(label, data):
     return None
 
 if __name__ == "__main__":
-    collect = collectEnergy.collectEnergy()
+    config = conf.config()
+    collect = collectEnergy.collectEnergy(config.public(), config.private(), conf.PATH_DB_ENERGY)
     collect.update()
 
     db = storageEnergy.storageEnergy()

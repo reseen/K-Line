@@ -2,11 +2,11 @@ from pack_graph   import *
 from pack_target  import *
 from pack_collect import *
 from pack_storage import *
-
+import config as conf
 
 # 读取数据
 def onGetData(code):
-    db = storageStockA.storageStockA()
+    db = storageStockA.storageStockA(conf.PATH_DB_STOCKA)
     # data = db.readData(code, '2016-01-01')
     data = db.readData(code)
 
@@ -43,8 +43,10 @@ def onGetNorm(label, data):
     return None
 
 if __name__ == "__main__":
-    collect = collectStockA.collectStockA()
-    collect.update(True, '000004.SZ')
+
+    config = conf.config()
+    collect = collectStockA.collectStockA(config.public(), config.private(), conf.PATH_DB_STOCKA)
+    collect.update()
 
     db = storageStockA.storageStockA()
     nm = target.norm()

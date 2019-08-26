@@ -4,11 +4,12 @@ import tushare as ts
 import datetime
 import time
 
-TUSHARE_TOKEN = '4e5e2d7fbf14185d371c9a5e78d178882d2b91436a0de40599a29ece'
 
 class collectStockA():
-    def __init__(self, path = 'D:/K-Line/data/list.json'):
+    def __init__(self, pubcfg, prvcfg, path):
         self.path = path
+        self.public = pubcfg
+        self.private = prvcfg
 
     # 获取当前日期
     def __getDateNow(self, fmt = '%Y_%m_%d'):
@@ -16,9 +17,9 @@ class collectStockA():
 
     # 更新数据
     def update(self, force = False, code = None):
-        ts.set_token(TUSHARE_TOKEN)
+        ts.set_token(self.private['tusharetoken'])
         pro = ts.pro_api()
-        db = stStockA()
+        db = stStockA(self.path)
 
         # 更新股票目录
         data = pro.stock_basic(exchange = '', list_status = '', fields = 'ts_code, symbol, name, area, industry, fullname, enname, market, exchange, curr_type, list_status, list_date, delist_date')
