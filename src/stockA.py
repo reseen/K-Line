@@ -9,14 +9,8 @@ def onGetData(code):
     db = storageStockA.storageStockA(conf.PATH_DB_STOCKA)
     # data = db.readData(code, '2016-01-01')
     data = db.readData(code)
-
-    for i in range(len(data)):              # 数据检查
-        if data[i][1] == 0 and i != 0:
-            lst = list(data[i])
-            lst[1] = data[i - 1][2]         # 如果开盘价丢失，则用昨天收盘价代替
-            tup = tuple(lst)
-            data[i] = tup
     print("read %s success, data length = %d" % (code, len(data)))
+    # return db.toWeek(data)
     return data
 
 # K线叠加图像
@@ -54,10 +48,10 @@ if __name__ == "__main__":
     for item in collect.public['stockA']['list']:
         updateList.append(db.readContents(item)[0])
 
-    if collect.public['stockA']['all'] is True:
-        collect.update()
-    else:
-        collect.update(updateList)
+    # if collect.public['stockA']['all'] is True:
+    #     collect.update()
+    # else:
+    #     collect.update(updateList)
 
     dataList = []
     normList = nm.getAllList()

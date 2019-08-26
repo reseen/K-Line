@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 class database:
     def __init__(self, path):
@@ -34,3 +35,32 @@ class database:
         self.cursor.execute('select count(*) from sqlite_master where type=\'table\' and name=\'%s\'' % name)
         count = self.cursor.fetchone()[0]
         return True if count != 0 else False
+
+    # 日线转换为周线
+    def toWeek(self, data):
+        dataw = []
+        open = close = high = low = vol = 0.0
+        date = None
+        enable = False
+
+        for item in data:
+            week = datetime.datetime.strptime(item[0], '%Y-%m-%d').weekday()
+
+            if week == 0: 
+                date = item[0]
+                open = item[1]
+                high = item[3]
+                low  = item[4]
+                enable = True
+
+            if week == 4 : close = item[2]
+            if high < item[3] : high = item[3]
+            if low  > item[4] : low  = item[4]
+            
+            vol += item[5]
+            if week == 4:
+                if enable is True:
+                    dataw.append((date, open, close, high, low, vol))
+                enable = False
+                open = close = high = low = vol = 0
+        return  dataw
