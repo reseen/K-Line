@@ -3,9 +3,9 @@
 *.ttf
 *.ttc
 !simsun.ttc
-user.json
 private.json
 stockA.db
+energy.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
