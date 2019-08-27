@@ -25,6 +25,6 @@ D:\K-Line\src> python energy.py
 
 ---
 
-*"private.json"存储个人隐私信息，目前未公开，如有需要格式请留言索取。*
+*"private.json"存储个人隐私信息，目前未公开。*
 
-*能源K线数据库与A股K线数据库，请执行update自行下载或留言索取。*
+*能源K线数据库与A股K线数据库，请执行update自行下载。*
