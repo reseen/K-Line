@@ -47,20 +47,20 @@ class database:
             week = datetime.datetime.strptime(item[0], '%Y-%m-%d').weekday()
 
             if week == 0: 
+                if enable is True:
+                    dataw.append((date, open, close, high, low, vol))
+                    open = close = high = low = vol = 0
+                else:
+                    enable = True
                 date = item[0]
                 open = item[1]
                 high = item[3]
                 low  = item[4]
-                enable = True
 
-            if week == 4 : close = item[2]
+            close = item[2]
+            vol  += item[5]
+
             if high < item[3] : high = item[3]
             if low  > item[4] : low  = item[4]
-            
-            vol += item[5]
-            if week == 4:
-                if enable is True:
-                    dataw.append((date, open, close, high, low, vol))
-                enable = False
-                open = close = high = low = vol = 0
+               
         return  dataw

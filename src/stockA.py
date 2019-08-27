@@ -48,10 +48,10 @@ if __name__ == "__main__":
     for item in collect.public['stockA']['list']:
         updateList.append(db.readContents(item)[0])
 
-    # if collect.public['stockA']['all'] is True:
-    #     collect.update()
-    # else:
-    #     collect.update(updateList)
+    if collect.public['stockA']['all'] is True:
+        collect.update()
+    else:
+        collect.update(updateList)
 
     dataList = []
     normList = nm.getAllList()

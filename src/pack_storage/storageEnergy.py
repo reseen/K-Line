@@ -43,7 +43,7 @@ class storageEnergy(storageBase.database):
     # 添加/修改数据表
     def __insert_datatable(self, code, date, open, close, high, low, vol, remarks, force):
         forcestr = 'replace' if force == True else 'ignore'
-        SQL = 'insert or %s into %s (date, open, close, high, low, vol, modify, remarks) values (date(\'%s\'), %s, %s, %s, %s, %s, datetime(\'now\', \'localtime\'), \'%s\')' % (forcestr, code, date, open, close, high, low, vol, 'null')
+        SQL = 'insert or %s into %s (date, open, close, high, low, vol, modify, remarks) values (date(\'%s\'), %s, %s, %s, %s, %s, datetime(\'now\', \'localtime\'), \'%s\')' % (forcestr, code, date, open, close, high, low, vol, remarks)
         # print('SQL -> ', SQL)
         super().execute(SQL)
         super().commit()
@@ -51,9 +51,9 @@ class storageEnergy(storageBase.database):
     # 读取数据表
     def __read_datatable(self, code, start):
         if start == None:
-            SQL = 'select * from %s' % code
+            SQL = 'select * from %s order by date asc' % code
         else:
-            SQL = 'select * from %s where date >= date(\'%s\')' % (code, start) 
+            SQL = 'select * from %s where date >= date(\'%s\') order by date asc' % (code, start) 
         # print('SQL -> ', SQL)
         super().execute(SQL)
         return super().fetchall()

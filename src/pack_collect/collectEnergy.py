@@ -5,6 +5,7 @@ from pack_storage.storageEnergy import storageEnergy as stEnergy
 import requests
 import datetime
 import json
+import csv
 
 class collectEnergy():
     def __init__(self, pubcfg, prvcfg, path):
@@ -39,7 +40,28 @@ class collectEnergy():
                 if 'date' in data:
                     db.insertData(energy['code'], data['date'], data['open'], data['close'], data['high'], data['low'], data['volume'], 'null', force)
                 elif 'd' in data:
-                    db.insertData(energy['code'], data['d'], data['o'], data['c'], data['h'], data['l'], data['v'], 'null', force)
+                    db.insertData(energy['code'], data['d'], data['o'], data['c'], data['h'], data['l'], data['v'], 'from url', force)
                 else:
                     print('--->', data)
             print('update finish [%s - %s] data len = %d' % (energy['code'], energy['name'], len(datas)))
+    
+    # 从CSV文件中更新数据
+    def updateCSV(self, code, name, path, force = False):
+        with open(path, encoding = 'utf-8') as f:
+            csvf = csv.reader(f)
+            head = True
+
+            db = stEnergy(self.path)
+            db.create(code, name, force)
+            for row in csvf:
+                if head is True: 
+                    head = False
+                else:
+                    date = datetime.datetime.strptime(row[0], '%Y年%m月%d日').strftime('%Y-%m-%d')
+                    if row[5] == '-':
+                        vol = 0.0 
+                    else:
+                        vol = float(row[5][0:-1]) * 1000.00
+                    db.insertData(code, date, row[2], row[1], row[3], row[4], vol, 'from csv', force)
+        print("update CSV success %s" % path)
+
